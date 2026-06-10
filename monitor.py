@@ -44,7 +44,11 @@ def fetch_pool_data() -> dict:
         try:
             r = requests.get(url, impersonate="chrome", timeout=15)
             r.raise_for_status()
-            return r.json()
+            j = r.json()
+            if "data" not in j or not j.get("data"):
+                print(f"[response 异常] HTTP {r.status_code} body 前 800 字: {r.text[:800]}", file=sys.stderr)
+                raise RuntimeError(f"MEXC 返回缺少 data 字段, code={j.get('code')} msg={j.get('msg') or j.get('message')}")
+            return j
         except Exception as e:
             last_exc = e
             print(f"[fetch 失败 attempt={attempt}] {type(e).__name__}: {e}", file=sys.stderr)
